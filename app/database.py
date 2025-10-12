@@ -3,13 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 # This should match our alembic.ini file
-<<<<<<< HEAD
 DATABASE_URL = "postgresql://postgres:thisisme2010@localhost/first-db"
-=======
-# ...existing code...
-DATABASE_URL = "postgresql://abhishek:deSjz7@localhost/first-db"
-# ...existing code...
->>>>>>> 3da3068 (add)
 
 engine = create_engine(DATABASE_URL)
 

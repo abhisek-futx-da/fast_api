@@ -1,6 +1,6 @@
-# FastAPI User Management API
+# FastAPI E-Commerce Platform API
 
-This project is a simple user management API built with FastAPI, PostgreSQL, SQLAlchemy, and Alembic, demonstrating a modern backend stack for creating web services.
+This project is a comprehensive e-commerce platform API built with FastAPI, PostgreSQL, SQLAlchemy, and Alembic, demonstrating a modern backend stack for creating web services.
 
 ## Core Technologies
 
@@ -252,5 +252,54 @@ These errors came from the database itself, rejecting operations that violated i
 - **Diagnosis**: We discovered that while the `upgrade()` function was correct, the corresponding `downgrade()` function in the migration script was empty. Alembic didn't know how to reverse the change.
 
 - **Resolution**: We manually edited the `downgrade()` function in the migration script to include the `op.drop_column()` commands, providing an explicit set of instructions for the rollback.
+
+---
+
+## Project Structure
+
+```
+fast_api/
+├── app/
+│   ├── models.py          # SQLAlchemy models for e-commerce entities
+│   ├── schemas.py         # Pydantic schemas for request/response validation
+│   ├── crud.py           # Database operations (CRUD functions)
+│   ├── main.py           # FastAPI application with all endpoints
+│   ├── simple_main.py    # Simplified version of the application
+│   ├── cart.py           # Cart-specific functionality
+│   └── database.py       # Database configuration and connection
+├── alembic/              # Database migrations
+│   ├── versions/         # Migration scripts
+│   └── env.py           # Alembic environment configuration
+├── alembic.ini          # Alembic configuration file
+├── ER_DIAGRAM_DESCRIPTION.md  # ER diagram description
+├── ER_DIAGRAM_MERMAID.md      # ER diagram in Mermaid format
+├── test_app.py          # Simple test application
+├── README.md            # This documentation file
+└── requirements.txt     # Python dependencies
+```
+
+## API Endpoints
+
+### User Management
+- `POST /users/` - Create a new user
+- `GET /users/` - List all users (with pagination)
+- `GET /users/{user_id}` - Get specific user details
+- `PUT /users/{user_id}` - Update user information
+- `DELETE /users/{user_id}` - Delete user (soft delete)
+
+### Product Management
+- `GET /products/` - List all products (with optional category filter)
+- `GET /products/search/` - Search products by name or description
+- `GET /products/{product_id}` - Get specific product details
+
+### Statistics
+- `GET /stats/users` - Get user statistics
+- `GET /stats/products` - Get product statistics
+
+### System
+- `GET /` - Welcome message and API information
+- `GET /health` - Health check endpoint
+- `GET /docs` - Interactive API documentation (Swagger UI)
+- `GET /redoc` - Alternative API documentation (ReDoc)
 
 ---

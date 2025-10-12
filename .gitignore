@@ -1,0 +1,76 @@
+# --- OS junk ---
+.DS_Store
+Thumbs.db
+
+# --- Python bytecode ---
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+
+# --- Virtual environments ---
+.venv/
+venv/
+env/
+ENV/
+.conda/
+.python-version
+
+# --- Builds & packaging ---
+build/
+dist/
+wheels/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+*.egg
+.installed.cfg
+
+# --- Logs & runtime files ---
+*.log
+logs/
+uvicorn*.log
+gunicorn*.pid
+celerybeat-schedule
+
+# --- Testing & coverage ---
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+
+# --- Type checking / linters ---
+.mypy_cache/
+.dmypy.json
+.pyre/
+.pytype/
+ruff_cache/
+.pyright/
+
+# --- Environment / secrets ---
+.env
+.env.*
+!.env.example
+
+# --- FastAPI static (if collected locally) ---
+staticfiles/
+
+# --- Alembic ---
+# Keep migration scripts! (alembic/versions/*.py should be tracked)
+alembic/*cache*/
+
+# --- Databases created locally ---
+*.sqlite
+*.sqlite3
+*.db
+
+# --- IDE / editor ---
+.vscode/
+.idea/
+*.iml
+
+# --- Temp ---
+tmp/
+.tmp/
