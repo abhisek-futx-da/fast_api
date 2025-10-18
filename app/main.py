@@ -42,25 +42,25 @@ def verify_token(token: str) -> Optional[dict]:
             del active_tokens[token]
     return None
 
-def get_current_user_id(authorization: str = Header(None)) -> int:
+def get_current_user_id(token: str = Header(None)) -> int:
     """Get current user ID from token in Authorization header."""
-    if not authorization or not authorization.startswith("Bearer "):
+    if not token or not token.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Missing or invalid authorization header")
-    token = authorization.split(" ")[1]
+    token = token.split(" ")[1]
     token_data = verify_token(token)
     if token_data is None:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
     return token_data["user_id"]
 
-def get_current_admin(authorization: str = Header(
+def get_current_admin(token: str = Header(
         ...,  # required
         description="Authorization header. Example: Bearer <token>"
     ), db: Session = Depends(get_db)) -> models.Admin:
     """Get current admin from token in Authorization header."""
-    print(authorization)
-    if not authorization or not authorization.startswith("Bearer "):
+    print(token)
+    if not token or not token.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Missing or invalid authorization header")
-    token = authorization.split(" ")[1]
+    token = token.split(" ")[1]
     token_data = verify_token(token)
     if token_data is None:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
@@ -71,22 +71,14 @@ def get_current_admin(authorization: str = Header(
     if not admin or not admin.is_active:
         raise HTTPException(status_code=403, detail="Admin access required")
     return admin
-def auth_header(
-    authorization: str | None = Header(
-        default=None,
-        description="Authorization header, e.g. ⁠ Bearer <token> ⁠"
-    )
-):
-    # If you also want handlers to read it later without changing signatures:
-    return authorization   
-# Initialize FastAPI app
+
 app = FastAPI(
     title="E-Commerce Platform API",
     description="A comprehensive e-commerce platform built with FastAPI, SQLAlchemy, and PostgreSQL",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
-    dependencies=[Depends(auth_header)]
+    
 )
 
 # Root endpoint
@@ -193,7 +185,7 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
         )
 
 class LoginRequest(BaseModel):
-    email: str
+    username: str
     password: str
 
 @app.post("/auth/login")
