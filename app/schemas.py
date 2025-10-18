@@ -263,3 +263,31 @@ class Shipping(ShippingBase):
 
     class Config:
         from_attributes = True
+
+
+# Admin Schemas
+class AdminBase(BaseModel):
+    username: str
+    email: EmailStr
+    role: str = "admin"
+    is_active: bool = True
+
+
+class AdminCreate(AdminBase):
+    password: str
+
+
+class AdminUpdate(BaseModel):
+    username: Optional[str] = None
+    email: Optional[EmailStr] = None
+    role: Optional[str] = None
+    is_active: Optional[bool] = None
+    password: Optional[str] = None
+
+
+class Admin(AdminBase):
+    admin_id: int
+    created_at: datetime
+
+    class Config:
+        from_attributes = True

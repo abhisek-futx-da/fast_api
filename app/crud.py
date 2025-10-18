@@ -1,21 +1,26 @@
 """CRUD operations for the e-commerce platform."""
 
+import email
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 from typing import List, Optional
 from passlib.context import CryptContext
 from . import models, schemas
 
-# Password hashing
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Password hashing - using only pbkdf2_sha256 to avoid bcrypt issues
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
 def get_password_hash(password: str) -> str:
-    """Hash a password."""
-    return pwd_context.hash(password)
+    """Hash a password using pbkdf2_sha256 (no length limitations)."""
+    return pwd_context.hash(password, scheme="pbkdf2_sha256")
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verify a password."""
-    return pwd_context.verify(plain_password, hashed_password)
+    """Verify a password using pbkdf2_sha256."""
+    try:
+        return pwd_context.verify(plain_password, hashed_password)
+    except Exception:
+        # If verification fails, return False
+        return False
 
 # User CRUD operations
 def get_user(db: Session, user_id: int) -> Optional[models.User]:
@@ -44,6 +49,63 @@ def create_user(db: Session, user: schemas.UserCreate) -> models.User:
     db.commit()
     db.refresh(db_user)
     return db_user
+
+# Admin CRUD operations
+def get_admin(db: Session, admin_id: int) -> Optional[models.Admin]:
+    return db.query(models.Admin).filter(models.Admin.admin_id == admin_id).first()
+
+
+def get_admin_by_username(db: Session, username: str) -> Optional[models.Admin]:
+    return db.query(models.Admin).filter(models.Admin.email == username).first()
+
+
+def get_admin_by_user_id(db: Session, user_id: int) -> Optional[models.Admin]:
+    # For now, we'll use a simple mapping. In production, you'd have a proper user-admin relationship
+    # This is a temporary solution - in real implementation, you'd have a user_id field in Admin model
+    return db.query(models.Admin).filter(models.Admin.admin_id == user_id).first()
+
+
+def get_admins(db: Session, skip: int = 0, limit: int = 100) -> List[models.Admin]:
+    return db.query(models.Admin).offset(skip).limit(limit).all()
+
+
+def create_admin(db: Session, admin: schemas.AdminCreate) -> models.Admin:
+    hashed = get_password_hash(admin.password)
+    db_admin = models.Admin(
+        username=admin.username,
+        email=admin.email,
+        password_hash=hashed,
+        role=admin.role,
+        is_active=admin.is_active,
+    )
+    db.add(db_admin)
+    db.commit()
+    db.refresh(db_admin)
+    return db_admin
+
+
+def update_admin(db: Session, admin_id: int, admin_update: schemas.AdminUpdate) -> Optional[models.Admin]:
+    db_admin = get_admin(db, admin_id)
+    if not db_admin:
+        return None
+    update_data = admin_update.dict(exclude_unset=True)
+    if "password" in update_data:
+        update_data["password_hash"] = get_password_hash(update_data.pop("password"))
+    for field, value in update_data.items():
+        setattr(db_admin, field, value)
+    db.commit()
+    db.refresh(db_admin)
+    return db_admin
+
+
+def delete_admin(db: Session, admin_id: int) -> Optional[models.Admin]:
+    db_admin = get_admin(db, admin_id)
+    if not db_admin:
+        return None
+    db_admin.is_active = False
+    db.commit()
+    db.refresh(db_admin)
+    return db_admin
 
 def update_user(db: Session, user_id: int, user_update: schemas.UserUpdate) -> Optional[models.User]:
     """Update a user."""
@@ -110,6 +172,73 @@ def create_product(db: Session, product: schemas.ProductCreate) -> models.Produc
     db.commit()
     db.refresh(db_product)
     return db_product
+
+def update_product(db: Session, product_id: int, product_update: schemas.ProductUpdate) -> Optional[models.Product]:
+    """Update a product."""
+    db_product = get_product(db, product_id)
+    if not db_product:
+        return None
+    
+    update_data = product_update.dict(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(db_product, field, value)
+    
+    db.commit()
+    db.refresh(db_product)
+    return db_product
+
+
+# Inventory operations
+def set_product_stock(db: Session, product_id: int, new_stock: int) -> Optional[models.Product]:
+    product = get_product(db, product_id)
+    if not product:
+        return None
+    product.stock_qty = max(0, new_stock)
+    db.commit()
+    db.refresh(product)
+    return product
+
+
+def increment_product_stock(db: Session, product_id: int, delta: int) -> Optional[models.Product]:
+    product = get_product(db, product_id)
+    if not product:
+        return None
+    product.stock_qty = max(0, product.stock_qty + delta)
+    db.commit()
+    db.refresh(product)
+    return product
+
+
+# Additional CRUD operations for admin functionality
+def delete_product(db: Session, product_id: int) -> bool:
+    product = get_product(db, product_id)
+    if not product:
+        return False
+    db.delete(product)
+    db.commit()
+    return True
+
+
+def delete_user(db: Session, user_id: int) -> bool:
+    user = get_user(db, user_id)
+    if not user:
+        return False
+    db.delete(user)
+    db.commit()
+    return True
+
+
+def get_reviews(db: Session, skip: int = 0, limit: int = 100) -> List[models.Review]:
+    return db.query(models.Review).offset(skip).limit(limit).all()
+
+
+def delete_review(db: Session, review_id: int) -> bool:
+    review = db.query(models.Review).filter(models.Review.review_id == review_id).first()
+    if not review:
+        return False
+    db.delete(review)
+    db.commit()
+    return True
 
 # Cart CRUD operations
 def get_cart(db: Session, cart_id: int) -> Optional[models.Cart]:

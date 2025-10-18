@@ -170,3 +170,16 @@ class Shipping(Base):
 
     # Relationships
     order = relationship("Order", back_populates="shipping")
+
+
+class Admin(Base):
+    """Administrative users who manage the platform."""
+    __tablename__ = "admins"
+
+    admin_id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(100), unique=True, nullable=False, index=True)
+    email = Column(String(150), unique=True, nullable=False, index=True)
+    password_hash = Column(String(255), nullable=False)
+    role = Column(String(50), nullable=False, default="admin")
+    is_active = Column(Boolean, default=True, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
